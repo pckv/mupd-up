@@ -14,6 +14,9 @@ fn main() {
     for stream in server.incoming() {
         spawn(move || {
             let mut websocket = accept(stream.unwrap()).expect("Failed to accept websocket");
+            let address = websocket.get_mut().peer_addr().unwrap();
+            println!("{:?}: Connected", address);
+
             websocket.write_message("Welcome to mup!d up!".into()).expect("Failed to write message");
 
             loop {
@@ -21,7 +24,7 @@ fn main() {
                     Ok(msg) => msg,
                     Err(err) => match err {
                         tungstenite::Error::ConnectionClosed => {
-                            println!("Connection closed");
+                            println!("{:?}: Disconnected", address);
                             break;
                         }
                         _ => {
