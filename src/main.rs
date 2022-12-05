@@ -17,7 +17,7 @@ fn main() {
             let address = websocket.get_mut().peer_addr().unwrap();
             println!("{:?}: Connected", address);
 
-            websocket.write_message("Welcome to mup!d up!".into()).expect("Failed to write message");
+            websocket.write_message("{\"message\": \"Welcome to &xmup!d up!\", \"palette\": { \"light\": \"#769518\", \"accent\": \"#3c4d0c\", \"dark\": \"#3c4d0c\", \"background\": \"#182005\" }}".into()).expect("Failed to write message");
 
             loop {
                 let msg = match websocket.read_message() {
@@ -34,8 +34,10 @@ fn main() {
                     },
                 };
 
+                let content = msg.to_text().unwrap();
+
                 if msg.is_binary() || msg.is_text() {
-                    websocket.write_message(msg).expect("Failed to write message");
+                    websocket.write_message(format!("{{\"message\": \"{content}\"}}").into()).expect("Failed to write message");
                 }
             }
         });
