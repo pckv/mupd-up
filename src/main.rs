@@ -2,6 +2,9 @@ use std::net::TcpListener;
 use std::thread::spawn;
 use tungstenite::accept;
 
+mod api;
+use api::{types::{Packet}, messaging::WebSocketExt};
+
 const HOST: &str = "127.0.0.1";
 const PORT: u32 = 8080;
 
@@ -17,7 +20,10 @@ fn main() {
             let address = websocket.get_mut().peer_addr().unwrap();
             println!("{:?}: Connected", address);
 
-            websocket.write_message("{\"message\": \"Welcome to &xmup!d up!\", \"palette\": { \"light\": \"#769518\", \"accent\": \"#3c4d0c\", \"dark\": \"#3c4d0c\", \"background\": \"#182005\" }}".into()).expect("Failed to write message");
+            websocket.write_api_packet(Packet {
+                message: Some("Welcome to &xmup!d up!".to_owned()),
+                palette: Some(api::palettes::MAIN_PALETTE),
+            }).expect("Failed to write message");
 
             loop {
                 let msg = match websocket.read_message() {
@@ -28,7 +34,7 @@ fn main() {
                             break;
                         }
                         _ => {
-                            println!("Error: {}", err);
+                            println!("Error: {:?}", err);
                             break;
                         }
                     },
@@ -37,7 +43,7 @@ fn main() {
                 let content = msg.to_text().unwrap();
 
                 if msg.is_binary() || msg.is_text() {
-                    websocket.write_message(format!("{{\"message\": \"{content}\"}}").into()).expect("Failed to write message");
+                    websocket.write_api_message(content.to_owned()).expect("Failed to write message");
                 }
             }
         });
